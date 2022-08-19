@@ -1,16 +1,90 @@
 //Variables
+  const platillos = [
+    {
+      id: 1,
+      nombre: "Pizza a la Leña Chica",
+      precio: 30,
+      categoria: 1
+    },
+    {
+      id: 2,
+      nombre: "Pizza a la Leña Mediana",
+      precio: 50,
+      categoria: 1
+    },
+    {
+      id: 3,
+      nombre: "Rebanada de Pay de Limón",
+      precio: 30,
+      categoria: 3
+    },
+    {
+      id: 4,
+      nombre: "Rebanada de Pastel de Chocolate",
+      precio: 30,
+      categoria: 3
+    },
+    {
+      id: 5,
+      nombre: "Jugo de Naranja",
+      precio: 15,
+      categoria: 2
+    },
+    {
+      id: 6,
+      nombre: "Pizza a la Leña Grande",
+      precio: 70,
+      categoria: 1
+    },
+    {
+      id: 7,
+      nombre: "Rib Eye 800g",
+      precio: 100,
+      categoria: 1
+    },
+    {
+      id: 8,
+      nombre: "Jugo de Naranja",
+      precio: 15,
+      categoria: 2
+    },
+    {
+      id: 9,
+      nombre: "Tequila",
+      precio: 40,
+      categoria: 2
+    },
+    {
+      id: 10,
+      nombre: "Rebanada de Pay de Queso",
+      precio: 30,
+      categoria: 3
+    },
+    {
+      id: 11,
+      nombre: "Café Americano",
+      precio: 20,
+      categoria: 2
+    },
+    {
+      id: 12,
+      nombre: "Café Capuchino",
+      precio: 40,
+      categoria: 2
+    }
+  ] //Esta variable simula los datos que estarían guardados externamente en el archivo json y serían accedido mediante una API, para poder hacer deploy del proyecto se reemplaza el archivo json por esta variable
   let objCliente = { //Acá se guardará la info del cliente una vez submitted
     mesa: '',
     hora: '',
     pedido: [],
   }
-  const categorias = {
+  const categorias = { //El valor correspondiente de cada categoria de platillo
     1: 'Comida',
     2: 'Bebidas',
     3: 'Postres',
   }
   //Selectores
-    const btnGuardarCliente = document.querySelector('#guardar-cliente');    
+    const btnGuardarCliente = document.querySelector('#guardar-cliente'); 
 
 //Event Listeners
 btnGuardarCliente.addEventListener('click', validarFormulario)
@@ -24,7 +98,7 @@ function validarFormulario() { //Revisa si los campos de mesa y hora fueron llen
 
   const estaVacio = [mesa, hora].some( cur => cur == '') //Si el metodo some encuentra un string vacio devuelve true
   if(estaVacio) {//Si exite un elemento vacio se imprime una alerta
-    if(!document.querySelector('.alerta-activa')) {
+    if(!document.querySelector('.alerta-activa')) {//La alerta solo se imprime si no existe una antes
       const alert = document.createElement('div');
       alert.classList.add('alerta-activa', 'invalid-feedback', 'd-block', 'text-center', 'fw-bold')
       alert.textContent = 'Llena ambos campos para crear una orden'
@@ -47,19 +121,25 @@ function validarFormulario() { //Revisa si los campos de mesa y hora fueron llen
   consultarPlatillos()
 }
 
-function mostrarSecciones() {
+function mostrarSecciones() { //Se le quita el display none a las secciones ocultas
   const seccionesOcultas = document.querySelectorAll('.d-none');
   seccionesOcultas.forEach(cur => cur.classList.remove('d-none'))
 }
 
-function consultarPlatillos() {
+/* function consultarPlatillos() { //Se consulta la API con los platillos, (esta funcion usa una API de Jsonserver ubicada en local host, para deployment se remplaza por otra funcion que no consulta API)
   const url = 'http://localhost:4000/platillos'
   fetch(url)
     .then(respuesta => respuesta.json())
     .then(resultado => mostrarPlatillos(resultado))
+} */
+
+function consultarPlatillos() { //Consulta los datos y obtiene los platillos
+  const resultado = platillos;
+  mostrarPlatillos(resultado)
 }
 
 function mostrarPlatillos(datos) {
+  //Scripting para mostrar los platillos en la interfaz
   const contenido = document.querySelector('#platillos .contenido')
   datos.forEach( cur => {
     const row = document.createElement('div');
@@ -86,7 +166,7 @@ function mostrarPlatillos(datos) {
     cantidad.id = `producto-${cur.id}`
     cantidad.value = 0
     cantidad.onchange = function () {
-      editarCantidad(cur, Number(cantidad.value))
+      editarCantidad(cur, Number(cantidad.value)) //Al cambiar el input number se llama esta funcion que recibe el objeto del platillo y la cantidad
     }
     containerCantidad.append(cantidad)
 
@@ -95,17 +175,17 @@ function mostrarPlatillos(datos) {
   })
 }
 
-function editarCantidad(platillo, cantidad) {
+function editarCantidad(platillo, cantidad) { //Edita el objeto de cliente que contiene todo el pedido
   const {nombre, precio, id} = platillo;
-  const objeto = {
+  const objeto = { //Objeto del platillo ha agregar
     nombre,
     precio,
     id,
     cantidad,
   }
-  if(cantidad > 0) {
-    const existe = objCliente.pedido.some(cur => cur.id == objeto.id)
-    if(existe) {
+  if(cantidad > 0) { //Si la cantidad ingresada en el input no es 0
+    const existe = objCliente.pedido.some(cur => cur.id == objeto.id) //Se consulta si ya existe el platillo a agregar dentro de la lista del pedido
+    if(existe) { //Si existe, se le suma a la cantidad y se actualiza pedido
       const listaNueva = objCliente.pedido.map(cur => {
         if(cur.id == objeto.id) {
           return objeto;
@@ -114,23 +194,23 @@ function editarCantidad(platillo, cantidad) {
         }
       })
       objCliente.pedido = listaNueva;
-    }else {
+    }else { //Si no existe, se agrega al pedido existente
       objCliente.pedido = [...objCliente.pedido, objeto]
     }
-  }else {
+  }else { //Si la cantidad ingresada es 0 se filtra el pedido para remover el platillo correspondiente
     const filtrado = objCliente.pedido.filter(ele => ele.id != id)
     objCliente.pedido = filtrado;
   }
 
-  if(objCliente.pedido.length == 0) {
+  if(objCliente.pedido.length == 0) { //Si la lista de pedido se queda sin objetos, se muestra el mensaje de agregar platillos
     mensajePedidoVacio();
-  }else {
+  }else { //Si no se queda sin objetos, se actualiza el resumen de la cuenta
     actualizarResumen();
   }
 
 }
 
-function actualizarResumen() {
+function actualizarResumen() { //Scripting del resumen de cuenta que muestra los platillos guardados en el array de pedido
   limpiarHtml()
   const contenido = document.querySelector('#resumen .contenido');
   const resumen = document.createElement('div');
@@ -214,7 +294,7 @@ function actualizarResumen() {
     
     //Funcion para eliminar del pedido
     btnEliminar.onclick = function() {
-      eliminarProducto(id)
+      eliminarProducto(id) //Se agrega funcion de borrado para un caso en el que se quiera eliminar un platillo de la cuenta
     }
 
 
@@ -238,21 +318,21 @@ function limpiarHtml() {
   }
 }
 
-function eliminarProducto(id) {
+function eliminarProducto(id) { //Elimina el platillo correspondiente del array de pedido y actualiza el input de number, recibe el id del platillo a borrar
   const filtrado = objCliente.pedido.filter(ele => ele.id !== id)
   objCliente.pedido = filtrado;
 
   const borrado = document.querySelector(`#producto-${id}`)
   borrado.value = 0
 
-  if(objCliente.pedido.length == 0) {
+  if(objCliente.pedido.length == 0) { //Si el array queda vacio, se muestra mensaje de 'agregar platillos'
     mensajePedidoVacio();
-  }else {
+  }else { //Si no queda vacio, se actualiza el resumen de cuenta
     actualizarResumen();
   }
 }
 
-function mensajePedidoVacio() {
+function mensajePedidoVacio() { //Muestra en la interfaz un mensaje para que se añadan platillos al pedido
   limpiarHtml()
   const contenido = document.querySelector('#resumen .contenido');
 
@@ -263,7 +343,7 @@ function mensajePedidoVacio() {
   contenido.append(texto)
 }
 
-function mostrarFormPropinas() {
+function mostrarFormPropinas() { //Scripting de la seccion donde se selecciona la propina a dar
   const contenido = document.querySelector('#resumen .contenido');
 
   const formulario = document.createElement('div')
@@ -283,7 +363,7 @@ function mostrarFormPropinas() {
   radio10.value = 10
   radio10.classList.add('form-check-input')
   radio10.onclick = function() {
-    calcularPropina(radio10.value)
+    calcularPropina(radio10.value)//Al seleccionar este porcentaje de propina, se llama a la funcion para calcular el total con dicho porcentaje
   }
 
   const radio10Label = document.createElement('label')
@@ -302,7 +382,7 @@ function mostrarFormPropinas() {
   radio20.value = 20
   radio20.classList.add('form-check-input')
   radio20.onclick = function() {
-    calcularPropina(radio20.value)
+    calcularPropina(radio20.value)//Al seleccionar este porcentaje de propina, se llama a la funcion para calcular el total con dicho porcentaje
   }
 
   const radio20Label = document.createElement('label')
@@ -321,7 +401,7 @@ function mostrarFormPropinas() {
   radio25.value = 25
   radio25.classList.add('form-check-input')
   radio25.onclick = function() {
-    calcularPropina(radio25.value)
+    calcularPropina(radio25.value)//Al seleccionar este porcentaje de propina, se llama a la funcion para calcular el total con dicho porcentaje
   }
 
   const radio25Label = document.createElement('label')
@@ -340,7 +420,7 @@ function mostrarFormPropinas() {
   
 }
 
-function calcularPropina(porcentaje) {
+function calcularPropina(porcentaje) { //Calcula el valor de la propina y el valor total de la cuenta, recibe el porcentaje de propina a pagar
   const {pedido} = objCliente;
   let subtotal = 0;
   pedido.forEach( cur => {
@@ -352,7 +432,7 @@ function calcularPropina(porcentaje) {
   mostrarTotal(subtotal, total, propina)
 }
 
-function mostrarTotal(subtotal, total, propina) {
+function mostrarTotal(subtotal, total, propina) { //Scripting que muestra el desgloce de la cuenta con subtotal, propina y total
 
   const divTotales = document.createElement('div')
   divTotales.id = 'container-totales'
@@ -387,7 +467,7 @@ function mostrarTotal(subtotal, total, propina) {
 
   totalText.append(totalSpan);
 
-  const containerTotales = document.querySelector('#container-totales')
+  const containerTotales = document.querySelector('#container-totales') //Elimina el scripting anterior (si existe) antes de agregar contenido nuevo
   if(containerTotales) {
     containerTotales.remove()
   }
